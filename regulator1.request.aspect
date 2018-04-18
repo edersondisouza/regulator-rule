@@ -15,28 +15,24 @@
  * limitations under the License.
  */
 
-info: call(static inline void clk_disable_unprepare(struct clk *clk))
+info: call(static inline void regulator_enable(struct regulator *regulator))
 {
 	$fprintf<$env<LDV_ARG_SIGNS_FILE>,"%s\n",$arg_sign1>
 }
 
-info: call(static inline int clk_prepare_enable(struct clk *clk)) ||
-      call(int clk_enable(struct clk *clk))
+info: call(static inline void regulator_disable(struct regulator *regulator)) ||
+      call(static inline void regulator_force_disable(struct regulator *regulator)) ||
+      call(static inline void regulator_disable_deferred(struct regulator *regulator)) ||
 {
 	$fprintf<$env<LDV_ARG_SIGNS_FILE>,"%s\n",$arg_sign1>
 }
 
-info: call(void clk_disable(struct clk *clk))
+info: call(static inline void regulator_disable(struct regulator *regulator))
 {
 	$fprintf<$env<LDV_ARG_SIGNS_FILE>,"%s\n",$arg_sign1>
 }
 
-info: call(int clk_prepare(struct clk *clk))
-{
-	$fprintf<$env<LDV_ARG_SIGNS_FILE>,"%s\n",$arg_sign1>
-}
-
-info: call(void clk_unprepare(struct clk *clk))
+info: call(static inline void regulator_put(struct regulator *regulator))
 {
 	$fprintf<$env<LDV_ARG_SIGNS_FILE>,"%s\n",$arg_sign1>
 }

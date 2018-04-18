@@ -18,51 +18,51 @@
 #include <verifier/common.h>
 #include <verifier/nondet.h>
 
-struct clk;
+struct regulator;
 
-// for arg_sign in clk1_arg_signs
-/* NOTE Initialize prepare counter to zero */
-int ldv_prepare_count{{ arg_sign.id }} = 0;
+// for arg_sign in regulator_arg_signs
 /* NOTE Initialize enable counter to zero */
 int ldv_enable_count{{ arg_sign.id }} = 0;
 
-/* MODEL_FUNC Unprepare clock */
-void ldv_clk_unprepare{{ arg_sign.id }}(void)
+/* MODEL_FUNC Disable regulator */
+void ldv_regulator_disable{{ arg_sign.id }}(void)
 {
-    /* NOTE Decrease prepare counter */
-    ldv_prepare_count{{ arg_sign.id }} = 0;
-/*    ldv_assume(ldv_prepare_count{{ arg_sign.id }} >= 0); */
+    /* NOTE Decrease enable counter */
+    ldv_enable_count{{ arg_sign.id }} -= 1;
+/*    ldv_assume(ldv_enable_count{{ arg_sign.id }} >= 0);*/
 }
 
-/* MODEL_FUNC Prepare clock */
-int ldv_clk_prepare{{ arg_sign.id }}(void)
+/* MODEL_FUNC Disable regulator */
+void ldv_regulator_disable_deferred{{ arg_sign.id }}(void)
 {
-	int retval = ldv_undef_int();
-	if (!retval) {
-		/* NOTE Increase prepare counter */
-		ldv_prepare_count{{ arg_sign.id }} = 1;
-/*		ldv_assume(ldv_prepare_count{{ arg_sign.id }} < 5);*/
-	} else {
-		ldv_assume(retval < 0);
-	}
-	return retval;
+    /* NOTE Decrease enable counter */
+    ldv_enable_count{{ arg_sign.id }} -= 1;
+/*    ldv_assume(ldv_enable_count{{ arg_sign.id }} >= 0);*/
 }
 
-/* MODEL_FUNC Disable clock */
-void ldv_clk_disable{{ arg_sign.id }}(void)
+/* MODEL_FUNC Disable regulator */
+void ldv_regulator_force_disable{{ arg_sign.id }}(void)
 {
     /* NOTE Decrease enable counter */
     ldv_enable_count{{ arg_sign.id }} = 0;
 /*    ldv_assume(ldv_enable_count{{ arg_sign.id }} >= 0);*/
 }
 
-/* MODEL_FUNC Enable clock */
-int ldv_clk_enable{{ arg_sign.id }}(void)
+/* MODEL_FUNC Disable regulator */
+void ldv_regulator_put{{ arg_sign.id }}(void)
+{
+    /* NOTE Decrease enable counter */
+	ldv_assert("linux:drivers:regulator1::more at regulator_put", ldv_enable_count{{ arg_sign.id }} == 0);
+/*    ldv_assume(ldv_enable_count{{ arg_sign.id }} >= 0);*/
+}
+
+/* MODEL_FUNC Enable regulator */
+int ldv_regulator_enable{{ arg_sign.id }}(void)
 {
 	int retval = ldv_undef_int();
 	if (!retval) {
 		/* NOTE Increase enable counter */
-		ldv_enable_count{{ arg_sign.id }} = 1;
+		ldv_enable_count{{ arg_sign.id }} += 1;
 /*		ldv_assume(ldv_enable_count{{ arg_sign.id }} < 5);*/
 	} else {
 		ldv_assume(retval < 0);
@@ -70,31 +70,14 @@ int ldv_clk_enable{{ arg_sign.id }}(void)
 	return retval;
 }
 
-/* MODEL_FUNC Prepare enable clock */
-int ldv_clk_prepare_enable{{ arg_sign.id }}(void)
-{
-int ret;
-
-	ret = ldv_clk_prepare{{ arg_sign.id }}();
-	if (ret)
-		return ret;
-	ret = ldv_clk_enable{{ arg_sign.id }}();
-	if (ret) {
-		ldv_clk_unprepare{{ arg_sign.id }}();
-		return ret;
-	}
-	return 0;
-}
 // endfor
 
-/* MODEL_FUNC Check that all clk are disabled and unprepared at the end */
+/* MODEL_FUNC Check that all regulator are disabled and unprepared at the end */
 void ldv_check_final_state(void)
 {
-	// for arg_sign in clk1_arg_signs
-	/* ASSERT Clk '{{ arg_sign.id }}' should be disabled before finishing operation */
-	ldv_assert("linux:drivers:clk1::more at exit", ldv_enable_count{{ arg_sign.id }} == 0);
-	/* ASSERT Clk '{{ arg_sign.id }}' should be unprepared before finishing operation */
-	ldv_assert("linux:drivers:clk1::more at exit", ldv_prepare_count{{ arg_sign.id }} == 0);
+	// for arg_sign in regulator1_arg_signs
+	/* ASSERT regulator '{{ arg_sign.id }}' should be disabled before finishing operation */
+	ldv_assert("linux:drivers:regulator1::more at exit", ldv_enable_count{{ arg_sign.id }} == 0);
 	// endfor
 }
 
